@@ -1,0 +1,92 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 3. Path Variable Hardening (ID Poisoning Guard)
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // 0.1 Context-Aware Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function incoming() {
+      return request.resource.data;
+    }
+    
+    function existing() {
+      return resource.data;
+    }
+
+    // Pillar 2 & 4: Validation Blueprints
+    function isValidOrder(data) {
+      return data.keys().hasAll(['customerName', 'total', 'status', 'storeId', 'createdAt'])
+        && data.keys().size() <= 10
+        && data.customerName is string && data.customerName.size() <= 100
+        && data.total is number && data.total >= 0
+        && data.status in ['pending', 'preparing', 'ready', 'delivering', 'completed', 'cancelled']
+        && data.storeId is string && data.storeId.size() <= 50
+        && data.createdAt == request.time;
+    }
+
+    function isValidStore(data) {
+      return data.keys().hasAll(['name', 'revenue', 'health', 'status'])
+        && data.name is string && data.name.size() <= 100
+        && data.revenue is number && data.revenue >= 0
+        && data.health is number && data.health >= 0 && data.health <= 100
+        && data.status in ['online', 'busy', 'offline'];
+    }
+
+    function isValidInventoryItem(data) {
+      return data.keys().hasAll(['name', 'category', 'stock', 'unit', 'threshold'])
+        && data.name is string && data.name.size() <= 100
+        && data.category is string
+        && data.stock is number && data.stock >= 0
+        && data.unit is string && data.unit.size() <= 20
+        && data.threshold is number && data.threshold >= 0;
+    }
+
+    function isValidEmployee(data) {
+      return data.keys().hasAll(['name', 'role', 'storeId', 'performance', 'status'])
+        && data.name is string && data.name.size() <= 100
+        && data.role is string
+        && data.storeId is string
+        && data.performance is number && data.performance >= 0 && data.performance <= 100
+        && data.status in ['on-shift', 'off-shift', 'training'];
+    }
+
+    // Pillar 8: Secure List Queries
+    match /orders/{orderId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(orderId) && isValidOrder(incoming());
+      allow update: if isSignedIn() && isValidId(orderId) && isValidOrder(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'total'])
+      );
+      allow delete: if false; // Only admins or soft-delete
+    }
+
+    match /stores/{storeId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(storeId) && isValidStore(incoming());
+      allow delete: if false;
+    }
+
+    match /inventory/{itemId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(itemId) && isValidInventoryItem(incoming());
+      allow delete: if false;
+    }
+
+    match /employees/{employeeId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(employeeId) && isValidEmployee(incoming());
+      allow delete: if false;
+    }
+  }
+}

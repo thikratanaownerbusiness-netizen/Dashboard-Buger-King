@@ -1,0 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  :root {
+    --bk-orange: #F27D26;
+    --bk-red: #D62300;
+    --bk-gold: #FFB30F;
+    --bk-cream: #F5E9DA;
+    --bk-black: #050505;
+  }
+
+  body {
+    @apply bg-[#050505] text-[#F5E9DA] font-sans;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  }
+  
+  .flame-gradient {
+    background: linear-gradient(135deg, #D62300 0%, #F27D26 50%, #FFB30F 100%);
+  }
+  
+  .flame-glow {
+    box-shadow: 0 0 40px rgba(242, 125, 38, 0.2);
+  }
+}

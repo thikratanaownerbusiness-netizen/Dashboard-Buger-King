@@ -1,0 +1,78 @@
+{
+  "entities": {
+    "Order": {
+      "title": "Order",
+      "description": "Customer order data",
+      "type": "object",
+      "properties": {
+        "customerName": { "type": "string" },
+        "total": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "preparing", "ready", "delivering", "completed", "cancelled"] },
+        "items": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "storeId": { "type": "string" },
+        "type": { "type": "string", "enum": ["delivery", "pickup"] }
+      },
+      "required": ["customerName", "total", "status", "storeId", "createdAt"]
+    },
+    "Store": {
+      "title": "Store",
+      "description": "Store location and performance data",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "revenue": { "type": "number" },
+        "health": { "type": "number" },
+        "status": { "type": "string", "enum": ["online", "busy", "offline"] },
+        "regionalRank": { "type": "number" }
+      },
+      "required": ["name", "revenue", "health", "status"]
+    },
+    "InventoryItem": {
+      "title": "Inventory Item",
+      "description": "Ingredient or supply item",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "stock": { "type": "number" },
+        "unit": { "type": "string" },
+        "threshold": { "type": "number" },
+        "status": { "type": "string", "enum": ["stable", "low", "critical"] }
+      },
+      "required": ["name", "category", "stock", "unit", "threshold"]
+    },
+    "Employee": {
+      "title": "Employee",
+      "description": "Staff member data",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "storeId": { "type": "string" },
+        "performance": { "type": "number" },
+        "status": { "type": "string", "enum": ["on-shift", "off-shift", "training"] },
+        "hours": { "type": "number" }
+      },
+      "required": ["name", "role", "storeId", "performance", "status"]
+    }
+  },
+  "firestore": {
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Master list of orders"
+    },
+    "/stores/{storeId}": {
+      "schema": "Store",
+      "description": "Global store directory"
+    },
+    "/inventory/{itemId}": {
+      "schema": "InventoryItem",
+      "description": "Global inventory tracking"
+    },
+    "/employees/{employeeId}": {
+      "schema": "Employee",
+      "description": "Workforce database"
+    }
+  }
+}
